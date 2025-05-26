@@ -1,10 +1,5 @@
----
-- name: Test RTSP endpoint
-  hosts: mocks
-  gather_facts: false
-  become: false
-
-  tasks:
+- name: Test RTSP stream
+  block:
     - name: Install required Python packages
       pip:
         name:

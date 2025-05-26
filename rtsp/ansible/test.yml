@@ -1,14 +1,6 @@
 - name: Test RTSP stream
   block:
-    - name: Install system dependencies
-      apt:
-        name:
-          - python3-opencv
-          - python3-numpy
-        state: present
-        update_cache: yes
-
-    - name: Install required Python packages
+    - name: Install required Python packages with pip
       pip:
         name:
           - opencv-python-headless
@@ -16,16 +8,31 @@
         state: present
 
     - name: Check if RTSP server is running
-      uri:
-        url: http://localhost:9997/v1/config/get
-        method: GET
-        status_code: 200
+      wait_for:
+        port: 8554
         timeout: 5
-      register: rtsp_status
-      retries: 3
-      delay: 2
-      until: rtsp_status is succeeded
+      register: rtsp_running
       ignore_errors: yes
+      changed_when: false
+
+    - name: Start RTSP server if not running
+      docker_container:
+        name: rtsp-mock
+        image: rtsp-mock
+        state: started
+        ports:
+          - "8554:8554"
+          - "8888:8888"
+        restart_policy: unless-stopped
+      when: not rtsp_running is succeeded
+      register: rtsp_started
+      changed_when: rtsp_started is changed
+
+    - name: Wait for RTSP server to be ready
+      wait_for:
+        port: 8554
+        timeout: 30
+      when: not rtsp_running is succeeded
 
     - name: Test RTSP stream connection
       script: test_rtsp.py
@@ -43,3 +50,9 @@
       fail:
         msg: "RTSP test failed - could not connect to stream"
       when: rtsp_test.rc != 0
+
+    - name: Stop RTSP server if we started it
+      docker_container:
+        name: rtsp-mock
+        state: stopped
+      when: rtsp_started is defined and rtsp_started is changed

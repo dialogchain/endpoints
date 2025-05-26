@@ -1,4 +1,5 @@
-FROM aler9/rtsp-simple-server:latest AS builder
+# Use Alpine Linux with FFmpeg as the base image
+FROM alpine:3.18 AS builder
 
 # Install FFmpeg for test stream generation
 RUN apk add --no-cache ffmpeg
@@ -6,11 +7,8 @@ RUN apk add --no-cache ffmpeg
 # Create a test video
 RUN ffmpeg -f lavfi -i testsrc=size=640x480:rate=30 -t 10 -c:v libx264 -pix_fmt yuv420p /test_stream.mp4
 
-# Final stage
+# Final stage - use the official RTSP server image
 FROM aler9/rtsp-simple-server:latest
-
-# Install FFmpeg
-RUN apk add --no-cache ffmpeg
 
 # Copy the test video from builder
 COPY --from=builder /test_stream.mp4 /test_stream.mp4

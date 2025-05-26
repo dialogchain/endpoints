@@ -6,6 +6,15 @@
           - requests
         state: present
 
+    - name: Build RTSP server image
+      docker_image:
+        name: rtsp-mock
+        source: build
+        build:
+          path: "{{ playbook_dir }}/../.."
+          dockerfile: rtsp/docker/Dockerfile
+        force_source: yes
+
     - name: Check if RTSP server is running
       wait_for:
         port: 8554

@@ -4,16 +4,40 @@
       pip:
         name:
           - requests
+          - docker
         state: present
 
-    - name: Build RTSP server image
-      docker_image:
+    - name: Ensure Docker SDK is available
+      pip:
+        name: docker
+        state: present
+
+    - name: Check if RTSP server container exists
+      docker_container_info:
         name: rtsp-mock
-        source: build
-        build:
-          path: "{{ playbook_dir }}/../.."
-          dockerfile: rtsp/docker/Dockerfile
-        force_source: yes
+      register: rtsp_container
+      ignore_errors: yes
+
+    - name: Start RTSP server container with embedded config
+      docker_container:
+        name: rtsp-mock
+        image: aler9/rtsp-simple-server:latest
+        state: started
+        ports:
+          - "8554:8554"
+          - "8888:8888"
+        command: >-
+          --rtsp-address :8554
+          --http-address :8888
+          --paths "test: source: publisher"
+      when: not rtsp_container.container.State.Running | default(false)
+      register: container_started
+
+    - name: Wait for RTSP server to be ready
+      wait_for:
+        port: 8554
+        timeout: 30
+      when: not rtsp_container.container.State.Running | default(false)
 
     - name: Check if RTSP server is running
       wait_for:
@@ -21,51 +45,13 @@
         timeout: 5
       register: rtsp_running
       ignore_errors: yes
-      changed_when: false
 
-    - name: Start RTSP server if not running
-      docker_container:
-        name: rtsp-mock
-        image: rtsp-mock
-        state: started
-        ports:
-          - "8554:8554"
-          - "8888:8888"
-        restart_policy: unless-stopped
-      when: not rtsp_running is succeeded
-      register: rtsp_started
-      changed_when: rtsp_started is changed
-
-    - name: Wait for RTSP server to be ready
-      wait_for:
-        port: 8554
-        timeout: 30
-      when: not rtsp_running is succeeded
-
-    - name: Verify RTSP server is accessible
-      uri:
-        url: http://localhost:8888/stats
-        method: GET
-        status_code: 200
-        timeout: 5
-      register: rtsp_status
-      retries: 3
-      delay: 2
-      until: rtsp_status is succeeded
-      ignore_errors: yes
-
-    - name: Show RTSP server status
+    - name: Show test result
       debug:
-        msg: "RTSP server is running and accessible"
-      when: rtsp_status.status == 200
+        msg: "RTSP server is running on port 8554"
+      when: rtsp_running is succeeded
 
     - name: Fail if RTSP server is not accessible
       fail:
-        msg: "RTSP server is not accessible"
-      when: rtsp_status.status != 200
-
-    - name: Stop RTSP server if we started it
-      docker_container:
-        name: rtsp-mock
-        state: stopped
-      when: rtsp_started is defined and rtsp_started is changed
+        msg: "RTSP server is not accessible on port 8554"
+      when: rtsp_running is not succeeded

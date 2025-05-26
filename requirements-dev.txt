@@ -1,0 +1,9 @@
+# Development dependencies
+pylint>=2.12.2
+pytest>=7.0.0
+pytest-cov>=3.0.0
+coverage>=6.3.2
+grpcio-tools>=1.43.0
+ansible>=4.10.0
+paho-mqtt>=1.6.1
+requests>=2.27.1

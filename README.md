@@ -10,44 +10,82 @@ A comprehensive collection of mock network service implementations for testing a
 - **WebRTC Server**: WebRTC signaling server implementation
 - **MQTT Broker**: MQTT message broker with WebSocket support
 
-## Quick Start
+## 🚀 Quick Start
 
-1. **Prerequisites**:
-   - Docker and Docker Compose
-   - Make
-   - Python 3.7+
+### Prerequisites
+- Docker and Docker Compose
+- Make
+- Python 3.7+
 
-2. Clone and start all services:
-   ```bash
-   # Clone the repository
-   git clone https://github.com/dialogchain/endpoints.git
-   cd endpoints
-   
-   # Build and start all services
-   make build
-   make up
-   ```
+### Basic Commands
 
-3. Verify services are running:
-   ```bash
-   docker ps
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/dialogchain/endpoints.git
+cd endpoints
 
-4. Run tests:
-   ```bash
-   # Run all tests
-   make test
-   
-   # Or run specific service tests
-   make test-rtsp
-   make test-http
-   make test-grpc
-   ```
+# Build and start all services
+make build
+make up
 
-5. Stop services:
-   ```bash
-   make down
-   ```
+# Check service status
+docker ps
+
+# View logs
+make logs
+
+# Run all tests
+make test
+
+# Stop services
+make down
+
+# Clean up everything
+make clean
+```
+
+### Development Workflow
+
+```bash
+# Install development tools
+pip install -r requirements-dev.txt
+
+# Run linter
+make lint
+
+# Run tests with coverage report
+make test-coverage
+
+# Test specific services
+make test-http     # Test HTTP server
+make test-grpc     # Test gRPC service
+make test-mqtt     # Test MQTT broker
+make test-rtsp     # Test RTSP server
+make test-webrtc   # Test WebRTC server
+```
+
+### Service Management
+
+```bash
+# Start specific service
+make -C http up
+make -C grpc up
+
+# Stop specific service
+make -C http down
+make -C grpc down
+
+# View service logs
+docker-compose logs -f http
+docker-compose logs -f grpc
+```
+
+### Monitoring
+
+- **Prometheus Metrics**: `http://localhost:8000/metrics` (gRPC service)
+- **Health Checks**:
+  - HTTP: `http://localhost:8080/health`
+  - gRPC: Use `grpc_health_probe` tool
 
 ## Service Details
 
@@ -116,23 +154,31 @@ A comprehensive collection of mock network service implementations for testing a
   - Multi-client connections
   - Secure WebSocket (WSS) support
 
-## Testing
+## 🧪 Testing
 
-### Using Makefile
+### Running Tests
+
+#### Using Makefile (Recommended)
 
 ```bash
 # Run all tests
 make test
 
-# Test specific services
-make test-rtsp
-make test-http
-make test-grpc
-make test-mqtt
-make test-webrtc
+# Run specific service tests
+make test-http     # Test HTTP endpoints
+make test-grpc     # Test gRPC service
+make test-mqtt     # Test MQTT broker
+make test-rtsp     # Test RTSP server
+make test-webrtc   # Test WebRTC signaling
+
+# Run tests with coverage report
+make test-coverage
+
+# Run linter
+make lint
 ```
 
-### Using Ansible
+#### Using Ansible Directly
 
 Run all tests:
 ```bash

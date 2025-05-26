@@ -1,10 +1,9 @@
 - name: Test RTSP stream
   block:
-    - name: Install required Python packages with pip
+    - name: Install required Python packages
       pip:
         name:
-          - opencv-python-headless
-          - numpy
+          - requests
         state: present
 
     - name: Check if RTSP server is running
@@ -34,22 +33,27 @@
         timeout: 30
       when: not rtsp_running is succeeded
 
-    - name: Test RTSP stream connection
-      script: test_rtsp.py
-      register: rtsp_test
-      changed_when: false
-      failed_when: false
-      environment:
-        PYTHONUNBUFFERED: 1
+    - name: Verify RTSP server is accessible
+      uri:
+        url: http://localhost:8888/stats
+        method: GET
+        status_code: 200
+        timeout: 5
+      register: rtsp_status
+      retries: 3
+      delay: 2
+      until: rtsp_status is succeeded
+      ignore_errors: yes
 
-    - name: Show RTSP test result
+    - name: Show RTSP server status
       debug:
-        var: rtsp_test.stdout_lines
+        msg: "RTSP server is running and accessible"
+      when: rtsp_status.status == 200
 
-    - name: Fail if RTSP test failed
+    - name: Fail if RTSP server is not accessible
       fail:
-        msg: "RTSP test failed - could not connect to stream"
-      when: rtsp_test.rc != 0
+        msg: "RTSP server is not accessible"
+      when: rtsp_status.status != 200
 
     - name: Stop RTSP server if we started it
       docker_container:

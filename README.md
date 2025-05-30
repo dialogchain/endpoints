@@ -1,40 +1,159 @@
-# Mock Network Services
+# DialogChain Endpoints
 
-A comprehensive collection of mock network service implementations for testing and development purposes. This project provides containerized mock services for various network protocols, making it easy to test client applications without requiring actual backend services.
+A comprehensive collection of network service implementations for testing and development purposes. This project provides containerized services for various network protocols, making it easy to test DialogChain integrations without requiring actual backend services.
 
-## Features
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Docker](https://img.shields.io/badge/Docker-2CA5E0?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Python](https://img.shields.io/badge/Python-3.7%2B-blue)](https://www.python.org/)
 
-- **RTSP Server**: Simulates an RTSP video streaming server with test streams
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Getting Started](#-getting-started)
+- [Available Services](#-available-services)
+- [Usage Examples](#-usage-examples)
+- [Development](#-development)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+## ✨ Features
+
+- **RTSP Server**: Simulates RTSP video streaming with test streams
 - **HTTP Server**: Lightweight REST API server with common endpoints
 - **gRPC Server**: Complete gRPC service with support for different RPC patterns
 - **WebRTC Server**: WebRTC signaling server implementation
 - **MQTT Broker**: MQTT message broker with WebSocket support
+- **Containerized**: Easy deployment with Docker Compose
+- **Development Ready**: Pre-configured for local development and testing
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose
-- Make
-- Python 3.7+
 
-### Basic Commands
+- Docker 20.10.0+
+- Docker Compose 2.0.0+
+- Make (optional, but recommended)
+- Python 3.7+ (for development)
+
+### Quick Start
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/dialogchain/endpoints.git
+   cd endpoints
+   ```
+
+2. Start all services:
+   ```bash
+   make up
+   ```
+
+3. Check service status:
+   ```bash
+   make status
+   ```
+
+4. Access services:
+   - HTTP Server: http://localhost:8080
+   - MQTT Broker: mqtt://localhost:1883
+   - RTSP Stream: rtsp://localhost:8554/stream
+
+## 🛠 Available Services
+
+### RTSP Server
+- **Port**: 8554 (RTSP), 8000 (HTTP)
+- **Streams**: /stream, /test
+- **Features**: H.264 video, AAC audio, authentication support
+
+### HTTP Server
+- **Port**: 8080
+- **Endpoints**:
+  - `GET /api/status` - Service status
+  - `POST /api/echo` - Echo request data
+  - `GET /api/stream` - Server-sent events
+
+### gRPC Server
+- **Port**: 50051
+- **Services**:
+  - EchoService
+  - ChatService
+  - StreamService
+
+### MQTT Broker
+- **Port**: 1883 (MQTT), 8883 (MQTT over SSL), 9001 (WebSocket)
+- **Topics**:
+  - `test/topic` - General testing
+  - `sensors/#` - Sensor data
+  - `commands/#` - Command messages
+
+### WebRTC Server
+- **Port**: 8443
+- **Features**:
+  - WebSocket signaling
+  - STUN/TURN support
+  - Multi-room chat
+
+## 💡 Usage Examples
+
+### Using with cURL
 
 ```bash
-# Clone the repository
-git clone https://github.com/dialogchain/endpoints.git
-cd endpoints
+# Test HTTP endpoint
+curl http://localhost:8080/api/status
 
-# Build and start all services
+# Publish MQTT message
+mosquitto_pub -h localhost -t test/topic -m "Hello, MQTT!"
+
+# View RTSP stream (requires VLC)
+vlc rtsp://localhost:8554/stream
+```
+
+### Using with Python
+
+```python
+import paho.mqtt.client as mqtt
+
+def on_connect(client, userdata, flags, rc):
+    print(f"Connected with result code {rc}")
+    client.subscribe("test/topic")
+
+def on_message(client, userdata, msg):
+    print(f"{msg.topic}: {msg.payload.decode()}")
+
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_message = on_message
+client.connect("localhost", 1883, 60)
+client.loop_forever()
+```
+
+## 🛠 Development
+
+### Prerequisites
+
+1. Install development dependencies:
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+2. Set up pre-commit hooks:
+   ```bash
+   pre-commit install
+   ```
+
+### Common Tasks
+
+```bash
+# Build all services
 make build
-make up
 
-# Check service status
-docker ps
+# Start services in detached mode
+make up
 
 # View logs
 make logs
 
-# Run all tests
+# Run tests
 make test
 
 # Stop services
@@ -44,11 +163,27 @@ make down
 make clean
 ```
 
-### Development Workflow
+### Adding a New Service
 
-```bash
-# Install development tools
-pip install -r requirements-dev.txt
+1. Create a new directory for your service
+2. Add a `Dockerfile` and any necessary configuration
+3. Update `docker-compose.yml`
+4. Add documentation to this README
+5. Submit a pull request
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📄 License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
 # Run linter
 make lint

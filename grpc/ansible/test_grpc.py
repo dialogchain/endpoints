@@ -10,16 +10,18 @@ from datetime import datetime
 # Import the generated gRPC stubs
 import example_pb2
 import example_pb2_grpc
+from dialogchain.utils.logger import setup_logger
+logger = setup_logger(__name__)
 
 def test_unary_rpc(stub):
     """Test the unary RPC method."""
     print("Testing unary RPC...")
     try:
         response = stub.SayHello(example_pb2.HelloRequest(name="Test User"))
-        print(f"✅ Unary RPC successful: {response.message}")
+        logger.info(f"✅ Unary RPC successful: {response.message}")
         return True
     except grpc.RpcError as e:
-        print(f"❌ Unary RPC failed: {e.code()}: {e.details()}")
+        logger.error(f"❌ Unary RPC failed: {e.code()}: {e.details()}")
         return False
 
 def test_server_streaming(stub):
@@ -32,17 +34,17 @@ def test_server_streaming(stub):
         received_count = 0
         for response in response_stream:
             received_count += 1
-            print(f"  - Received: ID={response.id}, Value='{response.value}'")
+            logger.info(f"  - Received: ID={response.id}, Value='{response.value}'")
         
         if received_count == 3:
             print("✅ Server streaming RPC successful")
             return True
         else:
-            print(f"❌ Server streaming RPC failed: Expected 3 messages, got {received_count}")
+            logger.error(f"❌ Server streaming RPC failed: Expected 3 messages, got {received_count}")
             return False
             
     except grpc.RpcError as e:
-        print(f"❌ Server streaming RPC failed: {e.code()}: {e.details()}")
+        logger.error(f"❌ Server streaming RPC failed: {e.code()}: {e.details()}")
         return False
 
 def test_client_streaming(stub):
@@ -59,12 +61,12 @@ def test_client_streaming(stub):
     
     try:
         response = stub.ClientStream(generate_messages())
-        print(f"✅ Client streaming RPC successful. Response: {response.response}")
-        print(f"  - Received {response.received_sequence} messages")
+        logger.info(f"✅ Client streaming RPC successful. Response: {response.response}")
+        logger.info(f"  - Received {response.received_sequence} messages")
         return True
         
     except grpc.RpcError as e:
-        print(f"❌ Client streaming RPC failed: {e.code()}: {e.details()}")
+        logger.error(f"❌ Client streaming RPC failed: {e.code()}: {e.details()}")
         return False
 
 def test_bidirectional_streaming(stub):
@@ -85,17 +87,17 @@ def test_bidirectional_streaming(stub):
         response_count = 0
         for response in response_stream:
             response_count += 1
-            print(f"  - Received response: {response.response}")
+            logger.info(f"  - Received response: {response.response}")
         
         if response_count == 3:
             print("✅ Bidirectional streaming RPC successful")
             return True
         else:
-            print(f"❌ Bidirectional streaming RPC failed: Expected 3 responses, got {response_count}")
+            logger.error(f"❌ Bidirectional streaming RPC failed: Expected 3 responses, got {response_count}")
             return False
             
     except grpc.RpcError as e:
-        print(f"❌ Bidirectional streaming RPC failed: {e.code()}: {e.details()}")
+        logger.error(f"❌ Bidirectional streaming RPC failed: {e.code()}: {e.details()}")
         return False
 
 def test_metrics():
@@ -108,10 +110,10 @@ def test_metrics():
             print("✅ Metrics endpoint is accessible")
             return True
         else:
-            print(f"❌ Metrics endpoint returned status code: {response.status_code}")
+            logger.error(f"❌ Metrics endpoint returned status code: {response.status_code}")
             return False
     except Exception as e:
-        print(f"❌ Failed to access metrics endpoint: {str(e)}")
+        logger.error(f"❌ Failed to access metrics endpoint: {str(e)}")
         return False
 
 def main():
@@ -120,7 +122,7 @@ def main():
     
     # Set up the gRPC channel and stub
     server_address = 'localhost:50051'
-    print(f"Connecting to gRPC server at {server_address}...")
+    logger.info(f"Connecting to gRPC server at {server_address}...")
     
     try:
         with grpc.insecure_channel(server_address) as channel:
@@ -137,7 +139,7 @@ def main():
             
             success = True
             for test_name, test_func in tests:
-                print(f"\n=== {test_name} ===")
+                logger.info(f"\n=== {test_name} ===")
                 if not test_func():
                     success = False
             
@@ -151,7 +153,7 @@ def main():
                 sys.exit(1)
                 
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.info(f"Error: {str(e)}")
         sys.exit(1)
 
 if __name__ == '__main__':

@@ -3,21 +3,23 @@ import paho.mqtt.client as mqtt
 import time
 import json
 import sys
+from dialogchain.utils.logger import setup_logger
+logger = setup_logger(__name__)
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("✅ Connected to MQTT broker")
     else:
-        print(f"❌ Failed to connect to MQTT broker with code {rc}")
+        logger.error(f"❌ Failed to connect to MQTT broker with code {rc}")
         sys.exit(1)
 
 def on_message(client, userdata, msg):
-    print(f"📬 Received message on topic {msg.topic}")
+    logger.info(f"📬 Received message on topic {msg.topic}")
     try:
         payload = json.loads(msg.payload.decode())
-        print(f"   Message: {payload}")
+        logger.info(f"   Message: {payload}")
     except json.JSONDecodeError:
-        print(f"   Message: {msg.payload.decode()}")
+        logger.info(f"   Message: {msg.payload.decode()}")
 
 def test_mqtt():
     print("Testing MQTT broker...")
@@ -38,12 +40,12 @@ def test_mqtt():
         # Subscribe to test topic
         test_topic = "test/topic"
         client.subscribe(test_topic)
-        print(f"📡 Subscribed to topic: {test_topic}")
+        logger.info(f"📡 Subscribed to topic: {test_topic}")
         
         # Publish test message
         test_message = {"message": "Hello, MQTT!", "status": "test"}
         client.publish(test_topic, json.dumps(test_message))
-        print(f"📤 Published test message to {test_topic}")
+        logger.info(f"📤 Published test message to {test_topic}")
         
         # Wait for message to be received
         time.sleep(2)
@@ -56,7 +58,7 @@ def test_mqtt():
         return True
         
     except Exception as e:
-        print(f"❌ MQTT test failed: {str(e)}")
+        logger.error(f"❌ MQTT test failed: {str(e)}")
         return False
     finally:
         try:

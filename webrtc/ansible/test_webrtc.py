@@ -9,6 +9,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from dialogchain.utils.logger import setup_logger
+logger = setup_logger(__name__)
 
 def test_webrtc():
     print("Starting WebRTC test...")
@@ -41,7 +43,7 @@ def test_webrtc():
         
         # Open the test page
         test_url = "http://localhost:3000"
-        print(f"Opening {test_url}...")
+        logger.info(f"Opening {test_url}...")
         driver.get(test_url)
         
         # Wait for page to load
@@ -89,7 +91,7 @@ def test_webrtc():
         return True
         
     except Exception as e:
-        print(f"❌ WebRTC test failed: {str(e)}")
+        logger.error(f"❌ WebRTC test failed: {str(e)}")
         import traceback
         traceback.print_exc()
         return False

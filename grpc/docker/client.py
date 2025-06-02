@@ -12,24 +12,26 @@ import grpc
 # Import the generated gRPC stubs
 import example_pb2
 import example_pb2_grpc
+from dialogchain.utils.logger import setup_logger
+logger = setup_logger(__name__)
 
 def run_unary_rpc(stub, name="World"):
     """Test the unary RPC method."""
-    print(f"\n=== Testing Unary RPC (SayHello) ===")
+    logger.info(f"\n=== Testing Unary RPC (SayHello) ===")
     try:
         response = stub.SayHello(example_pb2.HelloRequest(name=name))
-        print(f"Response: {response.message} (Status: {response.status})")
+        logger.info(f"Response: {response.message} (Status: {response.status})")
         return True
     except grpc.RpcError as e:
-        print(f"RPC failed: {e.code()}: {e.details()}")
+        logger.info(f"RPC failed: {e.code()}: {e.details()}")
         return False
 
 def run_server_streaming(stub, count=5, prefix="test"):
     """Test the server streaming RPC method."""
-    print(f"\n=== Testing Server Streaming (StreamData) ===")
+    logger.info(f"\n=== Testing Server Streaming (StreamData) ===")
     try:
         request = example_pb2.DataRequest(count=count, prefix=prefix)
-        print(f"Requesting {count} messages with prefix: {prefix}")
+        logger.info(f"Requesting {count} messages with prefix: {prefix}")
         
         start_time = time.time()
         response_stream = stub.StreamData(request)
@@ -38,19 +40,19 @@ def run_server_streaming(stub, count=5, prefix="test"):
         received_count = 0
         for response in response_stream:
             received_count += 1
-            print(f"  - ID: {response.id}, Value: {response.value}, Timestamp: {response.timestamp}")
+            logger.info(f"  - ID: {response.id}, Value: {response.value}, Timestamp: {response.timestamp}")
         
         duration = time.time() - start_time
-        print(f"Received {received_count} messages in {duration:.2f} seconds")
+        logger.info(f"Received {received_count} messages in {duration:.2f} seconds")
         return received_count == count
         
     except grpc.RpcError as e:
-        print(f"RPC failed: {e.code()}: {e.details()}")
+        logger.info(f"RPC failed: {e.code()}: {e.details()}")
         return False
 
 def run_client_streaming(stub, messages):
     """Test the client streaming RPC method."""
-    print(f"\n=== Testing Client Streaming (ClientStream) ===")
+    logger.info(f"\n=== Testing Client Streaming (ClientStream) ===")
     
     def generate_messages():
         for i, msg in enumerate(messages, 1):
@@ -61,25 +63,25 @@ def run_client_streaming(stub, messages):
             )
     
     try:
-        print(f"Sending {len(messages)} messages...")
+        logger.info(f"Sending {len(messages)} messages...")
         start_time = time.time()
         response = stub.ClientStream(generate_messages())
         duration = time.time() - start_time
         
-        print(f"Server response: {response.response}")
-        print(f"Received sequence: {response.received_sequence}")
-        print(f"Server ID: {response.server_id}")
-        print(f"Duration: {duration:.2f} seconds")
+        logger.info(f"Server response: {response.response}")
+        logger.info(f"Received sequence: {response.received_sequence}")
+        logger.info(f"Server ID: {response.server_id}")
+        logger.info(f"Duration: {duration:.2f} seconds")
         
         return response.received_sequence == len(messages)
         
     except grpc.RpcError as e:
-        print(f"RPC failed: {e.code()}: {e.details()}")
+        logger.info(f"RPC failed: {e.code()}: {e.details()}")
         return False
 
 def run_bidirectional_streaming(stub, messages):
     """Test the bidirectional streaming RPC method."""
-    print(f"\n=== Testing Bidirectional Streaming (BidirectionalStream) ===")
+    logger.info(f"\n=== Testing Bidirectional Streaming (BidirectionalStream) ===")
     
     def generate_messages():
         for i, msg in enumerate(messages, 1):
@@ -90,7 +92,7 @@ def run_bidirectional_streaming(stub, messages):
             )
     
     try:
-        print(f"Starting bidirectional stream with {len(messages)} messages...")
+        logger.info(f"Starting bidirectional stream with {len(messages)} messages...")
         start_time = time.time()
         
         # Start the RPC
@@ -101,25 +103,25 @@ def run_bidirectional_streaming(stub, messages):
         response_count = 0
         for response in response_stream:
             response_count += 1
-            print(f"  - {response.response} (Seq: {response.received_sequence})")
+            logger.info(f"  - {response.response} (Seq: {response.received_sequence})")
         
         duration = time.time() - start_time
-        print(f"Received {response_count} responses in {duration:.2f} seconds")
+        logger.info(f"Received {response_count} responses in {duration:.2f} seconds")
         
         return response_count == len(messages)
         
     except grpc.RpcError as e:
-        print(f"RPC failed: {e.code()}: {e.details()}")
+        logger.info(f"RPC failed: {e.code()}: {e.details()}")
         return False
 
 def run_health_check(stub):
     """Run a simple health check."""
     try:
         response = stub.SayHello(example_pb2.HelloRequest(name="healthcheck"), timeout=5)
-        print(f"Health check OK: {response.message}")
+        logger.info(f"Health check OK: {response.message}")
         return True
     except grpc.RpcError as e:
-        print(f"Health check failed: {e.code()}: {e.details()}")
+        logger.info(f"Health check failed: {e.code()}: {e.details()}")
         return False
 
 def main():
@@ -137,7 +139,7 @@ def main():
     
     # Set up the gRPC channel and stub
     server_address = f'{args.host}:{args.port}'
-    print(f"Connecting to gRPC server at {server_address}...")
+    logger.info(f"Connecting to gRPC server at {server_address}...")
     
     try:
         with grpc.insecure_channel(server_address) as channel:
@@ -178,7 +180,7 @@ def main():
                 sys.exit(1)
                 
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.info(f"Error: {str(e)}")
         sys.exit(1)
 
 if __name__ == '__main__':

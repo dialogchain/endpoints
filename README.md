@@ -114,11 +114,11 @@ vlc rtsp://localhost:8554/stream
 import paho.mqtt.client as mqtt
 
 def on_connect(client, userdata, flags, rc):
-    print(f"Connected with result code {rc}")
+    logger.info(f"Connected with result code {rc}")
     client.subscribe("test/topic")
 
 def on_message(client, userdata, msg):
-    print(f"{msg.topic}: {msg.payload.decode()}")
+    logger.info(f"{msg.topic}: {msg.payload.decode()}")
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -411,7 +411,7 @@ import example_pb2_grpc
 channel = grpc.insecure_channel('localhost:50051')
 stub = example_pb2_grpc.GreeterStub(channel)
 response = stub.SayHello(example_pb2.HelloRequest(name='World'))
-print(f"gRPC response: {response.message}")
+logger.info(f"gRPC response: {response.message}")
 ```
 
 ## ⚙️ Configuration

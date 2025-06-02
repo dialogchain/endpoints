@@ -2,6 +2,8 @@
 import sys
 import time
 import requests
+from dialogchain.utils.logger import setup_logger
+logger = setup_logger(__name__)
 
 def check_rtsp_server():
     try:
@@ -9,7 +11,7 @@ def check_rtsp_server():
         response = requests.get('http://localhost:8888/stats', timeout=5)
         return response.status_code == 200
     except Exception as e:
-        print(f"Error checking RTSP server: {e}")
+        logger.info(f"Error checking RTSP server: {e}")
         return False
 
 def main():
